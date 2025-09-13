@@ -9,8 +9,8 @@ A simple **Java + MySQL based Library Management System** with features for mana
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/your-username/library-management-system.git
-cd library-management-system
+git clone https://github.com/diya-e-g/BookVault.git
+cd BookVault
 ```
 
 ### 2️⃣ Database Setup
@@ -49,8 +49,6 @@ String pwd  = "your_password";
 
 ## 📸 Screenshots
 
-## 📸 Screenshots
-
 ![Screenshot 1](images/1.png)
 ![Screenshot 2](images/2.png)
 ![Screenshot 3](images/3.png)
@@ -82,30 +80,10 @@ String pwd  = "your_password";
 ![Screenshot 29](images/29.png)
 ![Screenshot 30](images/30.png)
 ![Screenshot 31](images/31.png)
-![Screenshot 32](images/32.png)
-![Screenshot 33](images/33.png)
-![Screenshot 34](images/34.png)
-![Screenshot 35](images/35.png)
-![Screenshot 36](images/36.png)
 
 ---
 
-## 📂 Project Structure
-
-```plaintext
-library-management-system/
-│── src/                # Java source files
-│── images/             # Screenshots for README
-│── database.sql        # Database schema + sample data
-│── README.md           # Documentation
-```
-
----
 
 ## 🙌 Contributors
 
-👩‍💻 Your Name – Developer
-
-🛠 Open to contributions! Feel free to fork and PR.
-
----
+👩‍💻 Basil Ahmed
