@@ -79,7 +79,6 @@ String pwd  = "your_password";
 ![Screenshot 28](images/28.png)
 ![Screenshot 29](images/29.png)
 ![Screenshot 30](images/30.png)
-![Screenshot 31](images/31.png)
 
 ---
 
