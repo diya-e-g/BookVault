@@ -122,27 +122,65 @@ public class Remove_Student extends javax.swing.JFrame {
     private void b1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b1ActionPerformed
         // TODO add your handling code here:
         String url="jdbc:mysql://localhost/library";
-        String user="root";
-        String pwd= "code";
-        String input=t1.getText();
-        String query= "delete from student_details where student_id='"+input+"' or name='"+input+"';";
-        try
-        {
-            Connection conn= DriverManager.getConnection(url,user,pwd);
-            Statement stm=conn.createStatement();
-            int rows=stm.executeUpdate(query);
-            if(rows>0)
-            JOptionPane.showMessageDialog(this,"Student removed from Library");
-            else
-            JOptionPane.showMessageDialog(this,"No such student present");
+    String user="root";
+    String pwd= "code";
+    String input=t1.getText();
 
-            //rs.close();
-            t1.setText(null);
-            stm.close();
+    String selectQuery = "SELECT * FROM STUDENT_DETAILS WHERE student_id=? OR name=?";
+    String deleteQuery = "DELETE FROM STUDENT_DETAILS WHERE student_id=? OR name=?";
+    try {
+        Connection conn = DriverManager.getConnection(url, user, pwd);
+
+        // First fetch old details before deletion (for audit log)
+        PreparedStatement selectStm = conn.prepareStatement(selectQuery);
+        selectStm.setString(1, input);
+        selectStm.setString(2, input);
+        ResultSet rs = selectStm.executeQuery();
+
+        String oldValue = null;
+        String deletedId = null;
+        if (rs.next()) {
+            deletedId = rs.getString("student_id");
+            String name = rs.getString("name");
+            String year = rs.getString("year");
+            String className = rs.getString("class");
+            oldValue = "{id:'" + deletedId + "', name:'" + name + "', year:'" + year + "', class:'" + className + "'}";
         }
-        catch(Exception e){
-            JOptionPane.showMessageDialog(this,e.getMessage());
+
+        rs.close();
+        selectStm.close();
+
+        // Now delete
+        PreparedStatement deleteStm = conn.prepareStatement(deleteQuery);
+        deleteStm.setString(1, input);
+        deleteStm.setString(2, input);
+        int rows = deleteStm.executeUpdate();
+
+        if(rows > 0) {
+            JOptionPane.showMessageDialog(this,"Student removed from Library");
+
+            // ✅ Insert into AUDIT_LOG
+            String auditQuery = "INSERT INTO AUDIT_LOG (USER_ID, ACTION, MODIFIED_BY, OLD_VALUE, NEW_VALUE) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement auditStm = conn.prepareStatement(auditQuery);
+            auditStm.setString(1, deletedId != null ? deletedId : input); // student id if found, else input
+            auditStm.setString(2, "DELETE");
+            auditStm.setString(3, LoginPage.currentUserId); // Who performed the action
+            auditStm.setString(4, oldValue); // old student details
+            auditStm.setString(5, null); // no new value
+            auditStm.executeUpdate();
+            auditStm.close();
+        } 
+        else {
+            JOptionPane.showMessageDialog(this,"No such student present");
         }
+
+        t1.setText(null);
+        deleteStm.close();
+        conn.close();
+
+    } catch(Exception e){
+        JOptionPane.showMessageDialog(this,e.getMessage());
+    }
     }//GEN-LAST:event_b1ActionPerformed
 
     private void b2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b2ActionPerformed

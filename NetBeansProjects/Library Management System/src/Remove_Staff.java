@@ -14,11 +14,12 @@ public class Remove_Staff extends javax.swing.JFrame {
     /**
      * Creates new form Remove_Staff
      */
-    public Remove_Staff() {
+    private String currentUserId;
+    public Remove_Staff(String currentUserId) {
         initComponents();
         setDefaultCloseOperation(Remove_Staff.DISPOSE_ON_CLOSE);
+        this.currentUserId = currentUserId;
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -123,22 +124,48 @@ public class Remove_Staff extends javax.swing.JFrame {
         String pwd= "code";
         String input=t1.getText();
         String query= "delete from staffs where staff_id='"+input+"' or name='"+input+"';";
-        try
-        {
-            Connection conn= DriverManager.getConnection(url,user,pwd);
-            Statement stm=conn.createStatement();
-            int rows=stm.executeUpdate(query);
-            if(rows>0)
-            JOptionPane.showMessageDialog(this,"Staff removed from Library");
-            else
-            JOptionPane.showMessageDialog(this,"No such staff present");
+        try (Connection conn = DriverManager.getConnection(url, user, pwd)) {
+            // Step 1: Get user details before deleting
+            String selectQuery = "SELECT * FROM USERS WHERE USER_ID=? OR NAME=?";
+            PreparedStatement psSelect = conn.prepareStatement(selectQuery);
+            psSelect.setString(1, input);
+            psSelect.setString(2, input);
+            ResultSet rs = psSelect.executeQuery();
 
-            //rs.close();
+            if (rs.next()) {
+                String userId = rs.getString("USER_ID");
+                String name = rs.getString("NAME");
+                String role = rs.getString("ROLE");
+                String oldValue = "USER_ID: " + userId + ", NAME: " + name + ", ROLE: " + role;
+
+                // Step 2: Delete the user
+                String deleteQuery = "DELETE FROM USERS WHERE USER_ID=? OR NAME=?";
+                PreparedStatement psDelete = conn.prepareStatement(deleteQuery);
+                psDelete.setString(1, input);
+                psDelete.setString(2, input);
+                int rows = psDelete.executeUpdate();
+
+                if (rows > 0) {
+                    JOptionPane.showMessageDialog(this, "User removed successfully");
+
+                    // Step 3: Insert into AUDIT_LOG
+                    String logQuery = "INSERT INTO AUDIT_LOG (USER_ID, ACTION, MODIFIED_BY, OLD_VALUE, NEW_VALUE) VALUES (?,?,?,?,?)";
+                    PreparedStatement psLog = conn.prepareStatement(logQuery);
+                    psLog.setString(1, userId); // deleted user
+                    psLog.setString(2, "DELETE");
+                    psLog.setString(3, currentUserId); // admin who deleted
+                    psLog.setString(4, oldValue);
+                    psLog.setString(5, "NULL");
+                    psLog.executeUpdate();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No such user found");
+            }
+
             t1.setText(null);
-            stm.close();
-        }
-        catch(Exception e){
-            JOptionPane.showMessageDialog(this,e.getMessage());
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }//GEN-LAST:event_b1ActionPerformed
 
@@ -154,37 +181,7 @@ public class Remove_Staff extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Remove_Staff.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Remove_Staff.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Remove_Staff.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Remove_Staff.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Remove_Staff().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton b1;

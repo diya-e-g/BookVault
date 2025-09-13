@@ -150,28 +150,41 @@ public class Add_Staff extends javax.swing.JFrame {
                 String url="jdbc:mysql://localhost/library";
        String user="root";
        String pwd= "code";
-       String query="insert into staffs values(?,?,?);";
-       String id=t1.getText();
-       String name=t2.getText();
-       int contact=Integer.parseInt(t3.getText());
-       try {
-            Connection conn= DriverManager.getConnection(url,user,pwd);
-                PreparedStatement stm = conn.prepareCall(query);
-                stm.setString(1,id);
-                stm.setInt(3,contact);
-                stm.setString(2,name);
-                
-                stm.execute();
-                JOptionPane.showMessageDialog(this,"One Staff added successfully");
-            
-           t1.setText(null);
-           t2.setText(null);
-           t3.setText(null);
-          
-       }
-       catch(Exception e)  {
+       String query="INSERT INTO USERS (USER_ID, NAME, PASSWORD, CONTACT, ROLE) VALUES (?, ?, ?, ?, 'STAFF')";
+       String id = t1.getText();         // Staff ID → USER_ID
+        String name = t2.getText();       // Staff Name
+        String contact = t3.getText();
+        
+      try (Connection conn = DriverManager.getConnection(url, user, pwd)) {
+        // 1️⃣ Insert into USERS
+        PreparedStatement stm = conn.prepareStatement(query);
+        stm.setString(1, id);               // USER_ID
+        stm.setString(2, name);             // NAME
+        stm.setString(3, id + "123");       // Default password
+        stm.setString(4, contact);          // CONTACT
+        stm.executeUpdate();
+
+        // 2️⃣ Insert into AUDIT_LOG
+        String auditQuery = "INSERT INTO AUDIT_LOG (USER_ID, ACTION, MODIFIED_BY, OLD_VALUE, NEW_VALUE) VALUES (?, ?, ?, ?, ?)";
+        PreparedStatement auditStm = conn.prepareStatement(auditQuery);
+
+        auditStm.setString(1, id);                       // Which user was modified
+        auditStm.setString(2, "INSERT");                 // Action performed
+        auditStm.setString(3, LoginPage.currentUserId);  // Who modified it (admin/staff)
+        auditStm.setString(4, null);                     // Old value (null since it's a new insert)
+        auditStm.setString(5, "{name:'" + name + "', contact:'" + contact + "'}"); // New values
+        auditStm.executeUpdate();
+
+        JOptionPane.showMessageDialog(this,"One Staff added successfully");
+
+        // Reset fields
+        t1.setText(null);
+        t2.setText(null);
+        t3.setText(null);
+
+    } catch (Exception e) {
         JOptionPane.showMessageDialog(this, e);
-       }
+    }
     }//GEN-LAST:event_b1ActionPerformed
 
     /**

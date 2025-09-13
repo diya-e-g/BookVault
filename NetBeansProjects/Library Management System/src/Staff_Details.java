@@ -130,7 +130,7 @@ public class Staff_Details extends javax.swing.JFrame {
        String url="jdbc:mysql://localhost/library";
        String user="root";
        String pwd= "code";
-       String query= "select * from staffs;";
+       String query= "SELECT USER_ID, NAME, CONTACT FROM USERS WHERE ROLE='STAFF'";
        try
        {
            Connection conn= DriverManager.getConnection(url,user,pwd);
@@ -138,7 +138,7 @@ public class Staff_Details extends javax.swing.JFrame {
            ResultSet rs= stm.executeQuery(query);
            while(rs.next())
            {
-               String staffid=rs.getString("STAFF_ID");
+               String staffid=rs.getString("USER_ID");
                String name=rs.getString("NAME");
                int contact =rs.getInt("CONTACT"); 
                model.addRow(new Object[] {staffid,name,contact}); 

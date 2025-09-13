@@ -134,38 +134,50 @@ public class Add_Student extends javax.swing.JFrame {
         int year = Integer.parseInt(t3.getSelectedItem().toString());
 
         try {
-            // Establishing a database connection
-            Connection conn = DriverManager.getConnection(url, user, pwd);
+        // Establishing a database connection
+        Connection conn = DriverManager.getConnection(url, user, pwd);
 
-            // Creating a PreparedStatement to execute the query
-            PreparedStatement stm = conn.prepareStatement(query);
+        // Creating a PreparedStatement to execute the query
+        PreparedStatement stm = conn.prepareStatement(query);
 
-            // Setting the values for the query placeholders
-            stm.setString(1, id);         // STUDENT_ID
-            stm.setString(2, name);       // NAME
-            stm.setInt(3, year);          // YEAR
-            stm.setString(4, className);  // CLASS
+        // Setting the values for the query placeholders
+        stm.setString(1, id);         // STUDENT_ID
+        stm.setString(2, name);       // NAME
+        stm.setInt(3, year);          // YEAR
+        stm.setString(4, className);  // CLASS
 
-            // Executing the query
-            stm.executeUpdate();
+        // Executing the query
+        stm.executeUpdate();
 
-            // Showing success message
-            JOptionPane.showMessageDialog(null, "One student added successfully");
+        // ✅ Insert into AUDIT_LOG
+        String auditQuery = "INSERT INTO AUDIT_LOG (USER_ID, ACTION, MODIFIED_BY, OLD_VALUE, NEW_VALUE) VALUES (?, ?, ?, ?, ?)";
+        PreparedStatement auditStm = conn.prepareStatement(auditQuery);
 
-            // Clearing the input fields
-            t1.setText(null);
-            t2.setText(null);
-            t3.setSelectedIndex(0);  // Resetting combo box to default
-            t5.setSelectedIndex(0);
+        auditStm.setString(1, id);                        // USER_ID = Student added
+        auditStm.setString(2, "INSERT");                  // Action performed
+        auditStm.setString(3, LoginPage.currentUserId);   // Who added (admin/staff from login)
+        auditStm.setString(4, null);                      // No old value
+        auditStm.setString(5, "{name:'" + name + "', year:'" + year + "', class:'" + className + "'}"); // New values
+        auditStm.executeUpdate();
 
-            // Closing the connection
-            stm.close();
-            conn.close();
-        }
-        catch (SQLException e) {
-            // Displaying error message if something goes wrong
-            JOptionPane.showMessageDialog(null, e.getMessage());
-        }
+        // Showing success message
+        JOptionPane.showMessageDialog(null, "One student added successfully");
+
+        // Clearing the input fields
+        t1.setText(null);
+        t2.setText(null);
+        t3.setSelectedIndex(0);  // Resetting combo box to default
+        t5.setSelectedIndex(0);
+
+        // Closing the connection
+        auditStm.close();
+        stm.close();
+        conn.close();
+    }
+    catch (SQLException e) {
+        // Displaying error message if something goes wrong
+        JOptionPane.showMessageDialog(null, e.getMessage());
+    }
     }//GEN-LAST:event_b1ActionPerformed
 
     private void b2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b2ActionPerformed

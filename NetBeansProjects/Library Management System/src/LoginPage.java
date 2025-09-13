@@ -10,6 +10,7 @@
 import java.sql.*;
 import javax.swing.*;
 public class LoginPage extends javax.swing.JFrame {
+    public static String currentUserId; 
 
     /**
      * Creates new form LoginPage
@@ -185,53 +186,41 @@ String mysqlpwd = "code";
 String pswrd = new String(password.getPassword());  // Password entered by the user
 String username = user.getText();  // Username (Admin or Staff Name) entered by the user
 
+
 try {
-    Connection conn = DriverManager.getConnection(url, mysqluser, mysqlpwd);
+        Connection conn = DriverManager.getConnection(url, mysqluser, mysqlpwd);
 
-    // Check if the user is an admin
-    String adminQuery = "SELECT PASSWORD FROM admin WHERE USER_ID = ?";
-    PreparedStatement adminStmt = conn.prepareStatement(adminQuery);
-    adminStmt.setString(1, username);
-    ResultSet rs = adminStmt.executeQuery();
+        // ✅ FIXED: use USER_ID instead of username
+        String query = "SELECT PASSWORD, ROLE FROM USERS WHERE USER_ID = ?";
+        PreparedStatement stmt = conn.prepareStatement(query);
+        stmt.setString(1, username);
+        ResultSet rs = stmt.executeQuery();
 
-    if (rs.next()) {
-        String realAdminPswrd = rs.getString("PASSWORD");
+        if (rs.next()) {
+            String realPassword = rs.getString("PASSWORD");
+            String role = rs.getString("ROLE");
+        if (realPassword.equals(pswrd)) {
+    // Save current user ID in memory
+    LoginPage.currentUserId = username;
 
-        if (realAdminPswrd.equals(pswrd)) {
-            // If password matches, open the Dashboard for admin
-            Dashboard dsh = new Dashboard();
-            dsh.setVisible(true);
-            this.dispose();
-            return;  // Stop further execution
-        } else {
-            JOptionPane.showMessageDialog(this, "Username or password entered is wrong");
-            return;  // Stop further execution
-        }
-    }
-
-    // If not an admin, check if the user is a staff member
-    String staffQuery = "SELECT STAFF_ID FROM staffs WHERE NAME = ?";
-    PreparedStatement staffStmt = conn.prepareStatement(staffQuery);
-    staffStmt.setString(1, username);
-    ResultSet staffRs = staffStmt.executeQuery();
-
-    if (staffRs.next()) {
-        String realStaffId = staffRs.getString("STAFF_ID");
-
-        if (realStaffId.equals(pswrd)) {
-            // If staff name matches and password matches the STAFF_ID, open Staff_Dashboard
-            Staff_dashboard staffDashboard = new Staff_dashboard();
-            staffDashboard.setVisible(true);
-            this.dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Username or password entered is wrong");
-        }
+    if ("ADMIN".equalsIgnoreCase(role)) {
+        Dashboard adminDash = new Dashboard(username);
+        adminDash.setVisible(true);
+        this.dispose();
+    } else if ("STAFF".equalsIgnoreCase(role)) {
+        Staff_dashboard staffDash = new Staff_dashboard(username);
+        staffDash.setVisible(true);
+        this.dispose();
     } else {
-        JOptionPane.showMessageDialog(this, "Wrong Username");
+        JOptionPane.showMessageDialog(this, 
+            "Students cannot login! Please contact library staff.");
     }
-} catch (Exception e) {
-    JOptionPane.showMessageDialog(this, e.getMessage());
 }
+        }
+}   
+    catch (Exception e) {
+        JOptionPane.showMessageDialog(this, e.getMessage());
+    }
 
 
     }//GEN-LAST:event_jButton1ActionPerformed
