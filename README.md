@@ -1,6 +1,6 @@
-# 📚 Library Management System
+# 📚 BookVault
 
-A simple **Java + MySQL based Library Management System** with features for managing users, students, books, issues, and audit logs.
+A **Java + MySQL based Library Management System** with features for managing users, students, books, issues, and audit logs.
 
 ---
 
@@ -82,7 +82,3 @@ String pwd  = "your_password";
 
 ---
 
-
-## 🙌 Contributors
-
-👩‍💻 Basil Ahmed
